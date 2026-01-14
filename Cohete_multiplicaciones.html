@@ -1,0 +1,668 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Carga el cohete — Multiplicaciones (1–12)</title>
+  <style>
+    :root{
+      --bg:#070b18;
+      --card:#111a33;
+      --muted:#94a3b8;
+      --text:#e5e7eb;
+      --line:rgba(255,255,255,.12);
+      --ok:#22c55e;
+      --bad:#ef4444;
+      --btn:#1f2a4f;
+      --btn2:#243663;
+      --chip:#0f1730;
+      --gold:#fbbf24;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      background:
+        radial-gradient(1200px 700px at 20% 0%, #182455 0%, var(--bg) 60%),
+        radial-gradient(900px 500px at 80% 20%, #0b3a5a 0%, rgba(7,11,24,0) 60%);
+      color: var(--text);
+      overflow-x:hidden;
+    }
+    .wrap{max-width:980px;margin:22px auto;padding:16px;}
+    h1{margin:0 0 6px 0;font-size:28px;}
+    p{margin:0 0 14px 0;color:var(--muted)}
+    .grid{
+      display:grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap:14px;
+    }
+    @media (max-width: 900px){
+      .grid{grid-template-columns:1fr;}
+    }
+    .card{
+      background: rgba(17,26,51,.82);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 16px;
+      backdrop-filter: blur(6px);
+    }
+    .topbar{
+      display:flex; gap:10px; flex-wrap:wrap; align-items:center; justify-content:space-between;
+      margin-bottom: 10px;
+    }
+    .chips{display:flex; gap:10px; flex-wrap:wrap; align-items:center;}
+    .chip{
+      background: var(--chip);
+      border: 1px solid var(--line);
+      padding: 8px 12px;
+      border-radius: 999px;
+      color: var(--muted);
+      font-size: 14px;
+      display:flex; gap:8px; align-items:center;
+    }
+    .chip strong{color:var(--text); font-weight:800}
+    .toggle{
+      display:flex; align-items:center; gap:8px;
+      border:1px solid var(--line);
+      background: rgba(255,255,255,.03);
+      border-radius: 14px;
+      padding: 8px 10px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+    table{width:100%; border-collapse:separate; border-spacing:0 10px;}
+    th{color:var(--muted); font-size:13px; text-align:left; padding:0 10px 6px;}
+    .row{
+      background: rgba(255,255,255,.04);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+    }
+    .row td{padding: 12px 10px;}
+    .row td:first-child{width:30%; font-size:18px; font-weight:800;}
+    .row td:nth-child(2){width:35%;}
+    .row td:nth-child(3){width:35%;}
+    .ans{
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,.06);
+      color: var(--text);
+      font-size: 16px;
+      outline: none;
+    }
+    .ans:focus{border-color: rgba(255,255,255,.25)}
+    .ans.okInput{border-color: rgba(34,197,94,.7); box-shadow: 0 0 0 2px rgba(34,197,94,.12);}
+    .ans.badInput{border-color: rgba(239,68,68,.7); box-shadow: 0 0 0 2px rgba(239,68,68,.12);}
+    .result{
+      display:flex; align-items:center; gap:10px;
+      min-height: 40px;
+      padding: 8px 12px;
+      border-radius: 12px;
+      border: 1px dashed rgba(255,255,255,.18);
+      color: var(--muted);
+      font-size: 14px;
+    }
+    .badge{
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-weight: 900;
+      font-size: 12px;
+      color: #0b1020;
+    }
+    .ok{background: var(--ok);}
+    .bad{background: var(--bad);}
+
+    .btns{display:flex; gap:10px; flex-wrap:wrap; margin-top: 12px;}
+    button{
+      border: 1px solid var(--line);
+      background: var(--btn);
+      color: var(--text);
+      padding: 10px 14px;
+      border-radius: 14px;
+      font-size: 15px;
+      cursor: pointer;
+    }
+    button:hover{background: var(--btn2);}
+    button:disabled{opacity:.55; cursor:not-allowed;}
+
+    .footer{
+      margin-top: 12px;
+      color: var(--muted);
+      font-size: 14px;
+      display:flex;
+      flex-wrap:wrap;
+      gap:12px;
+      justify-content:space-between;
+      align-items:flex-start;
+    }
+
+    /* Panel cohete */
+    .rocketWrap{
+      position: relative;
+      min-height: 420px;
+      overflow:hidden;
+    }
+    .sky{
+      position:absolute; inset:0;
+      background:
+        radial-gradient(2px 2px at 20% 30%, rgba(255,255,255,.8) 40%, rgba(255,255,255,0) 60%),
+        radial-gradient(2px 2px at 60% 20%, rgba(255,255,255,.7) 40%, rgba(255,255,255,0) 60%),
+        radial-gradient(1.5px 1.5px at 70% 60%, rgba(255,255,255,.6) 40%, rgba(255,255,255,0) 60%),
+        radial-gradient(1.5px 1.5px at 35% 75%, rgba(255,255,255,.6) 40%, rgba(255,255,255,0) 60%),
+        radial-gradient(1px 1px at 85% 40%, rgba(255,255,255,.55) 40%, rgba(255,255,255,0) 60%);
+      opacity:.8;
+      pointer-events:none;
+    }
+    .hud{
+      position: relative;
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+    }
+    .mission{
+      background: rgba(255,255,255,.03);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 12px;
+      color: var(--muted);
+      line-height: 1.35;
+    }
+    .mission b{color: var(--text)}
+    .fuelBox{
+      background: rgba(255,255,255,.03);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 12px;
+    }
+    .fuelTop{
+      display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap;
+      margin-bottom: 10px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+    .fuelTop strong{color: var(--text)}
+    .bar{
+      height: 16px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.18);
+      background: rgba(255,255,255,.04);
+      overflow:hidden;
+    }
+    .barFill{
+      height:100%;
+      width:0%;
+      border-radius:999px;
+      background: linear-gradient(90deg, rgba(34,197,94,.95), rgba(251,191,36,.9));
+      transition: width 220ms ease;
+    }
+    .rocketStage{
+      position: relative;
+      height: 230px;
+      margin-top: 8px;
+      border-radius: 18px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,.03);
+      overflow:hidden;
+    }
+    .ground{
+      position:absolute; left:0; right:0; bottom:0; height: 48px;
+      background: linear-gradient(180deg, rgba(255,255,255,.0), rgba(255,255,255,.06));
+      border-top: 1px solid rgba(255,255,255,.10);
+    }
+    .rocket{
+      position:absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      bottom: 48px;
+      width: 110px;
+      height: 160px;
+      transition: transform 600ms ease;
+    }
+    .rocket svg{width:100%; height:100%;}
+    .flame{
+      position:absolute;
+      left:50%;
+      transform: translateX(-50%);
+      bottom: 30px;
+      width: 46px;
+      height: 60px;
+      opacity: 0;
+      transition: opacity 200ms ease;
+      filter: drop-shadow(0 0 10px rgba(251,191,36,.35));
+    }
+    .shake{ animation: shake 160ms infinite; }
+    @keyframes shake{
+      0%{transform: translateX(-50%) translateY(0)}
+      50%{transform: translateX(-50%) translateY(2px)}
+      100%{transform: translateX(-50%) translateY(0)}
+    }
+    .launching .flame{opacity: 1;}
+    .launching .rocket{transform: translateX(-50%) translateY(-18px);}
+    .launched .rocket{transform: translateX(-50%) translateY(-230px);}
+    .launched .flame{opacity: 1;}
+
+    .bigText{
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+    .bigText .callout{
+      display:inline-block;
+      margin-top: 8px;
+      padding: 8px 10px;
+      border-radius: 14px;
+      border: 1px solid rgba(251,191,36,.25);
+      background: rgba(251,191,36,.08);
+      color: var(--text);
+      font-weight: 700;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <h1>Carga el cohete</h1>
+    <p><b>Cada respuesta correcta es combustible.</b> Completa las 5 para despegar.</p>
+
+    <div class="grid">
+      <!-- Panel ejercicios -->
+      <div class="card">
+        <div class="topbar">
+          <div class="chips">
+            <div class="chip">Ronda <strong id="chipRound">1</strong></div>
+            <div class="chip">⏱️ <strong id="chipTime">00:00.0</strong></div>
+            <div class="chip">🏆 Récord <strong id="chipBest">—</strong></div>
+          </div>
+          <label class="toggle">🔊 Sonidos <input type="checkbox" id="toggleSound" checked></label>
+        </div>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Multiplicación</th>
+              <th>Tu respuesta</th>
+              <th>Resultado</th>
+            </tr>
+          </thead>
+          <tbody id="tbody"></tbody>
+        </table>
+
+        <div class="btns">
+          <button id="btnSend">Enviar</button>
+          <button id="btnNext" disabled>Siguiente misión</button>
+          <button id="btnReset">Reiniciar</button>
+        </div>
+
+        <div class="footer">
+          <div id="status">Combustible: 0 / 5</div>
+          <div>Enter = enviar / avanzar</div>
+        </div>
+      </div>
+
+      <!-- Panel cohete -->
+      <div class="card rocketWrap">
+        <div class="sky"></div>
+
+        <div class="hud">
+          <div class="mission">
+            <b>Misión:</b> cargar el cohete con 5 unidades de combustible.<br/>
+            <span>Resuelve las multiplicaciones. Si una sale mal, corrígela y vuelve a enviar.</span>
+          </div>
+
+          <div class="fuelBox">
+            <div class="fuelTop">
+              <span>⛽ Combustible</span>
+              <span><strong id="fuelLabel">0</strong> / 5</span>
+            </div>
+            <div class="bar"><div class="barFill" id="barFill"></div></div>
+            <div class="bigText">
+              <span id="msg">Aún no hay combustible. Empecemos con la primera ronda.</span><br/>
+              <span class="callout" id="callout">Objetivo: 5/5 correctas para despegar</span>
+            </div>
+          </div>
+
+          <div class="rocketStage" id="rocketStage">
+            <div class="rocket" id="rocket">
+              <!-- Cohete simple en SVG -->
+              <svg viewBox="0 0 120 170" xmlns="http://www.w3.org/2000/svg" aria-label="cohete">
+                <defs>
+                  <linearGradient id="bodyG" x1="0" x2="0" y1="0" y2="1">
+                    <stop offset="0" stop-color="#e5e7eb" stop-opacity="0.95"/>
+                    <stop offset="1" stop-color="#cbd5e1" stop-opacity="0.9"/>
+                  </linearGradient>
+                  <linearGradient id="noseG" x1="0" x2="0" y1="0" y2="1">
+                    <stop offset="0" stop-color="#fbbf24" stop-opacity="0.95"/>
+                    <stop offset="1" stop-color="#fb7185" stop-opacity="0.85"/>
+                  </linearGradient>
+                </defs>
+
+                <!-- cuerpo -->
+                <path d="M60 12
+                         C85 35, 92 70, 92 105
+                         C92 135, 78 155, 60 162
+                         C42 155, 28 135, 28 105
+                         C28 70, 35 35, 60 12Z"
+                      fill="url(#bodyG)" stroke="rgba(255,255,255,.25)" stroke-width="2"/>
+                <!-- nariz -->
+                <path d="M60 8 C72 20, 78 30, 78 40 C66 36, 54 36, 42 40 C42 30, 48 20, 60 8Z"
+                      fill="url(#noseG)" stroke="rgba(255,255,255,.18)" stroke-width="2"/>
+
+                <!-- ventana -->
+                <circle cx="60" cy="70" r="14" fill="#0b1020" stroke="rgba(255,255,255,.35)" stroke-width="3"/>
+                <circle cx="56" cy="66" r="4" fill="rgba(255,255,255,.35)"/>
+
+                <!-- aletas -->
+                <path d="M28 105 C16 112, 10 126, 12 144 C22 140, 30 132, 34 121Z"
+                      fill="#60a5fa" opacity="0.85"/>
+                <path d="M92 105 C104 112, 110 126, 108 144 C98 140, 90 132, 86 121Z"
+                      fill="#60a5fa" opacity="0.85"/>
+
+                <!-- base -->
+                <path d="M44 150 C50 156, 70 156, 76 150 C72 166, 48 166, 44 150Z"
+                      fill="#94a3b8" opacity="0.85"/>
+              </svg>
+            </div>
+
+            <div class="flame" id="flame">
+              <svg viewBox="0 0 60 90" xmlns="http://www.w3.org/2000/svg" aria-label="llama">
+                <defs>
+                  <linearGradient id="flameG" x1="0" x2="0" y1="0" y2="1">
+                    <stop offset="0" stop-color="#fde68a"/>
+                    <stop offset="0.5" stop-color="#fbbf24"/>
+                    <stop offset="1" stop-color="#fb7185"/>
+                  </linearGradient>
+                </defs>
+                <path d="M30 6
+                         C42 22, 50 34, 48 52
+                         C46 72, 38 84, 30 86
+                         C22 84, 14 72, 12 52
+                         C10 34, 18 22, 30 6Z"
+                      fill="url(#flameG)"/>
+              </svg>
+            </div>
+
+            <div class="ground"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+(() => {
+  // Config
+  const MIN = 1, MAX = 12;
+  const GROUP_SIZE = 5;
+
+  // Persistencia
+  const LS_BEST = "rocket_mult_best_ms";
+
+  // Estado
+  let round = 1;
+  let current = []; // {a,b,correct,inputId,resultId,isCorrect}
+  let bestMs = Number(localStorage.getItem(LS_BEST) || "Infinity");
+
+  // Timer
+  let t0 = 0;
+  let timerId = null;
+  let finishedMs = null;
+
+  // Audio
+  let audioCtx = null;
+
+  // DOM
+  const tbody = document.getElementById("tbody");
+  const chipRound = document.getElementById("chipRound");
+  const chipTime = document.getElementById("chipTime");
+  const chipBest = document.getElementById("chipBest");
+  const status = document.getElementById("status");
+  const btnSend = document.getElementById("btnSend");
+  const btnNext = document.getElementById("btnNext");
+  const btnReset = document.getElementById("btnReset");
+  const toggleSound = document.getElementById("toggleSound");
+
+  const barFill = document.getElementById("barFill");
+  const fuelLabel = document.getElementById("fuelLabel");
+  const msg = document.getElementById("msg");
+  const rocketStage = document.getElementById("rocketStage");
+  const flame = document.getElementById("flame");
+
+  const randInt = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+
+  // 3x4 = 4x3 se considera repetido
+  function keyUnordered(a, b) {
+    const x = Math.min(a, b);
+    const y = Math.max(a, b);
+    return `${x}x${y}`;
+  }
+
+  function formatMs(ms){
+    if(!Number.isFinite(ms)) return "—";
+    const m = Math.floor(ms/60000);
+    const s = Math.floor((ms%60000)/1000);
+    const d = Math.floor((ms%1000)/100);
+    return `${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")}.${d}`;
+  }
+
+  function setBestUI(){
+    chipBest.textContent = (bestMs === Infinity) ? "—" : formatMs(bestMs);
+  }
+
+  function startTimer(){
+    stopTimer();
+    finishedMs = null;
+    t0 = performance.now();
+    chipTime.textContent = "00:00.0";
+    timerId = setInterval(() => {
+      chipTime.textContent = formatMs(performance.now() - t0);
+    }, 100);
+  }
+
+  function stopTimer(){
+    if(timerId){ clearInterval(timerId); timerId = null; }
+  }
+
+  function elapsedMs(){
+    if(finishedMs !== null) return finishedMs;
+    return performance.now() - t0;
+  }
+
+  function beep(freq=660, duration=0.08, type="sine", gain=0.06){
+    if(!toggleSound.checked) return;
+    try{
+      audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+      const t = audioCtx.currentTime;
+
+      const o = audioCtx.createOscillator();
+      const g = audioCtx.createGain();
+      o.type = type;
+      o.frequency.setValueAtTime(freq, t);
+
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(gain, t + 0.01);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + duration);
+
+      o.connect(g);
+      g.connect(audioCtx.destination);
+      o.start(t);
+      o.stop(t + duration + 0.02);
+    }catch(e){}
+  }
+
+  function soundOk(){ beep(880, 0.07, "sine", 0.06); }
+  function soundBad(){ beep(220, 0.10, "square", 0.045); }
+  function soundWin(){
+    beep(660, 0.07, "sine", 0.06);
+    setTimeout(() => beep(880, 0.07, "sine", 0.06), 90);
+    setTimeout(() => beep(1100,0.10, "sine", 0.06), 180);
+  }
+
+  function generateGroupNoRepeats(){
+    const group = [];
+    const used = new Set();
+    while(group.length < GROUP_SIZE){
+      const a = randInt(MIN, MAX);
+      const b = randInt(MIN, MAX);
+      const key = keyUnordered(a, b);
+      if(used.has(key)) continue;
+      used.add(key);
+      group.push({a, b, correct: a*b});
+    }
+    return group;
+  }
+
+  function renderGroup(group){
+    tbody.innerHTML = "";
+    current = group.map((q, idx) => {
+      const inputId = `ans_${round}_${idx}`;
+      const resultId = `res_${round}_${idx}`;
+      const tr = document.createElement("tr");
+      tr.className = "row";
+      tr.innerHTML = `
+        <td>${q.a} × ${q.b}</td>
+        <td><input class="ans" id="${inputId}" inputmode="numeric" autocomplete="off" placeholder="Escribe aquí"></td>
+        <td><div class="result" id="${resultId}">—</div></td>
+      `;
+      tbody.appendChild(tr);
+      return {...q, inputId, resultId, isCorrect:false};
+    });
+
+    setTimeout(() => {
+      const first = document.getElementById(current[0].inputId);
+      if(first) first.focus();
+    }, 0);
+  }
+
+  function updateFuelUI(){
+    const okCount = current.filter(q => q.isCorrect).length;
+    const pct = (okCount / GROUP_SIZE) * 100;
+    barFill.style.width = `${pct}%`;
+    fuelLabel.textContent = String(okCount);
+    status.textContent = `Combustible: ${okCount} / ${GROUP_SIZE}`;
+
+    if(okCount === 0){
+      msg.textContent = "Sin combustible aún. Resuelve una para cargar el tanque.";
+    } else if(okCount < GROUP_SIZE){
+      msg.textContent = `Bien. Llevas ${okCount}/5. Completa el tanque para despegar.`;
+    } else {
+      msg.textContent = "Tanque completo. ¡Listo para despegar!";
+    }
+
+    btnNext.disabled = (okCount !== GROUP_SIZE);
+  }
+
+  function resetRocketVisual(){
+    rocketStage.classList.remove("launching","launched");
+    flame.classList.remove("shake");
+  }
+
+  function launchAnimation(){
+    // 1) encender y temblor
+    resetRocketVisual();
+    rocketStage.classList.add("launching");
+    flame.classList.add("shake");
+
+    // 2) despegar
+    setTimeout(() => {
+      rocketStage.classList.remove("launching");
+      rocketStage.classList.add("launched");
+      flame.classList.remove("shake");
+    }, 900);
+
+    // 3) volver a plataforma (visual) para la siguiente misión
+    setTimeout(() => {
+      resetRocketVisual();
+    }, 1900);
+  }
+
+  function grade(){
+    current.forEach(q => {
+      const input = document.getElementById(q.inputId);
+      const res = document.getElementById(q.resultId);
+
+      const raw = (input.value || "").trim();
+      const userVal = raw === "" ? NaN : Number(raw);
+      const isOk = Number.isFinite(userVal) && userVal === q.correct;
+
+      q.isCorrect = isOk;
+
+      input.classList.remove("okInput","badInput");
+      input.classList.add(isOk ? "okInput" : "badInput");
+
+      if(isOk){
+        res.innerHTML = `<span class="badge ok">CARGA</span> <span>${q.correct}</span>`;
+        soundOk();
+      } else {
+        res.innerHTML = `<span class="badge bad">FUGA</span> <span>Correcto: ${q.correct}</span>`;
+        soundBad();
+      }
+    });
+
+    updateFuelUI();
+
+    // foco a la primera mala
+    const firstBad = current.find(q => !q.isCorrect);
+    if(firstBad){
+      const el = document.getElementById(firstBad.inputId);
+      if(el) el.focus();
+    }
+
+    // si todas correctas: detener tiempo, récord, despegar
+    if(current.every(q => q.isCorrect)){
+      finishedMs = elapsedMs();
+      stopTimer();
+      chipTime.textContent = formatMs(finishedMs);
+
+      if(finishedMs < bestMs){
+        bestMs = finishedMs;
+        localStorage.setItem(LS_BEST, String(bestMs));
+      }
+      setBestUI();
+
+      soundWin();
+      launchAnimation();
+    }
+  }
+
+  function nextMission(){
+    if(btnNext.disabled) return;
+    round++;
+    chipRound.textContent = String(round);
+    resetRocketVisual();
+
+    const group = generateGroupNoRepeats();
+    renderGroup(group);
+    startTimer();
+    updateFuelUI();
+  }
+
+  function resetAll(){
+    round = 1;
+    chipRound.textContent = "1";
+    resetRocketVisual();
+
+    const group = generateGroupNoRepeats();
+    renderGroup(group);
+    startTimer();
+    updateFuelUI();
+  }
+
+  // Eventos
+  btnSend.addEventListener("click", grade);
+  btnNext.addEventListener("click", nextMission);
+  btnReset.addEventListener("click", resetAll);
+
+  document.addEventListener("keydown", (e) => {
+    if(e.key !== "Enter") return;
+    if(!btnNext.disabled) nextMission();
+    else grade();
+  });
+
+  // Init
+  setBestUI();
+  resetAll();
+})();
+</script>
+</body>
+</html>
